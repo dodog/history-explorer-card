@@ -383,39 +383,43 @@ const lang_sk =
 {
     "ui" : {
         "label" : {
-            "type_to_search" : "Napíšte, ak chcete vyhľadať entitu, ktorú chcete pridať",
-            "error_retreiving" : "Nepodarilo sa načítať dostupné entity !",
+            "type_to_search" : "Napíšte entitu, ktorú chcete pridať",
+            "error_retreiving" : "Nepodarilo sa načítať dostupné entity!",
             "loading" : "Načitavanie dostupných entít...",
         }, 
         "popup" : {
-            "remove_all" : "Odstrániť všetky dynamicky pridané grafy ?",
-            "enable_panel" : "Povoliť informačný panel histórie ?",
-            "disable_panel" : "Zakázať informačný panel histórie ?"
+            "remove_all" : "Odstrániť všetky dynamicky pridané grafy?",
+            "enable_panel" : "Povoliť informačný panel histórie?",
+            "disable_panel" : "Zakázať informačný panel histórie?"
         },
         "menu" : {  
-            "export_csv" : "Export ako CSV",
-            "export_stats" : "Export štatistiky ako CSV",
+            "export_csv" : "Exportovať ako CSV",
+            "export_stats" : "Exportovať štatistiky ako CSV",
             "remove_all" : "Odstrániť všetky pridané grafy",
             "enable_panel" : "Povoliť informačný panel histórie",
             "disable_panel" : "Zakázať informačný panel histórie"
         },
-        "ranges" : {
-            "l_hour" : "< 1 H",
-            "hour" : "1 H",
-            "n_hours" : "%1 H",
-            "day" : "1 deň",
-            "n_days" : "%1 dní",
-            "week" : "1 týždeň",
-            "n_weeks" : "%1 týždňov",
-            "month" : "1 mesiac",
-            "n_months" : "%1 mesiacov",
-            "year" : "1 rok"
+        "ranges": {
+            "l_hour": "< 1 h",
+            "hour": "1 hodina",
+            "n_hours": "%1 hodina|%1 hodiny|%1 hodín",
+
+            "day": "1 deň",
+            "n_days": "%1 deň|%1 dni|%1 dní",
+
+            "week": "1 týždeň",
+            "n_weeks": "%1 týždeň|%1 týždne|%1 týždňov",
+
+            "month": "1 mesiac",
+            "n_months": "%1 mesiac|%1 mesiace|%1 mesiacov",
+
+            "year": "1 rok"
         },
         "interval" : {
             "_10m" : "10 min",
             "hourly" : "Hodinovo",
             "daily" : "Denne",
-            "monthly" : "Mesačné",
+            "monthly" : "Mesačne",
             "rawline" : "Ako čiara"
         }
     }
@@ -495,13 +499,35 @@ export function setLanguage(l)
     if( lang && lang.length > 0 && languages[lang[0]] ) language = lang[0];
 }
 
-export function i18n(t, a0)
-{
-    let v = t.split('.').reduce((o,i) => o[i], languages[language]);
-    if( v === undefined ) 
-        v = t.split('.').reduce((o,i) => o[i], languages['en']);
-    if( v && a0 ) v = v.replace('%1', a0);
-    return v;
+
+// Slovak pluralization helper: expects strings like "one|few|many"
+function skPluralize(template, n) {
+    if (typeof template !== 'string') return template;
+    const parts = template.split('|');
+    if (parts.length !== 3) {
+        return template.replace('%1', n);
+    }
+    let form;
+    if (n === 1) {
+        form = parts[0];
+    } else if (n >= 2 && n <= 4) {
+        form = parts[1];
+    } else {
+        form = parts[2];
+    }
+    return form.replace('%1', n);
 }
 
-
+export function i18n(t, a0) {
+    let v = t.split('.').reduce((o,i) => o[i], languages[language]);
+    if (v === undefined) {
+        v = t.split('.').reduce((o,i) => o[i], languages['en']);
+    }
+    if (v && a0 !== undefined) {
+        if (language === 'sk' && typeof v === 'string' && v.includes('|')) {
+            return skPluralize(v, a0);
+        }
+        return v.replace('%1', a0);
+    }
+    return v;
+}
